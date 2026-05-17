@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard - Skill Bridge</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <nav>
+        <h1>🌉 Skill Bridge</h1>
+        <div>
+            <a href="/courses">Browse Courses</a>
+            <a href="/logout">Logout</a>
+        </div>
+    </nav>
+
+    <div class="dashboard">
+        <h2>Welcome back, {{ name }}! 👋</h2>
+        <p>Keep learning and growing every day!</p>
+
+        <h3>Your Enrolled Courses</h3>
+
+        {% if courses %}
+        <div class="courses-grid">
+            {% for course in courses %}
+            <div class="course-card">
+                <h4>📚 {{ course[0] }}</h4>
+                <p>Progress</p>
+                <div class="progress-bar">
+    <div class="progress-fill" style="width: {{ course[1] }}%">
+        {{ course[1] }}%
+    </div>
+</div>
+<div style="display:flex; gap:0.75rem; margin-top:0.75rem;">
+    <a href="/course/{{ course[2] }}" class="btn"
+       style="font-size:0.85rem; padding:0.4rem 1rem;">
+       View Lessons
+    </a>
+    <a href="/unenroll/{{ course[2] }}" 
+       onclick="return confirm('Are you sure you want to unenroll?')"
+       class="btn-unenroll">
+       Unenroll
+    </a>
+</div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-box">
+            <p>You have not enrolled in any courses yet!</p>
+            <a href="/courses" class="btn">Browse Courses</a>
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Quiz Result - Skill Bridge</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <nav>
+        <h1>🌉 Skill Bridge</h1>
+        <div>
+            <a href="/dashboard">Dashboard</a>
+            <a href="/logout">Logout</a>
+        </div>
+    </nav>
+
+    <div class="dashboard" style="text-align:center;">
+        <div class="result-card">
+
+            {% if score == total %}
+                <div style="font-size:4rem;">🏆</div>
+                <h2 style="color:#34d399;">Perfect Score!</h2>
+            {% elif score >= total // 2 %}
+                <div style="font-size:4rem;">🎉</div>
+                <h2 style="color:#4f8ef7;">Good Job!</h2>
+            {% else %}
+                <div style="font-size:4rem;">💪</div>
+                <h2 style="color:#f59e0b;">Keep Practicing!</h2>
+            {% endif %}
+
+            <div class="score-circle">
+                <span class="score-num">{{ score }}</span>
+                <span class="score-total">/ {{ total }}</span>
+            </div>
+
+            <p style="color:#666; margin-bottom:2rem;">
+                You got {{ score }} out of {{ total }} questions correct!
+            </p>
+
+            <div style="display:flex; gap:1rem; justify-content:center;">
+                <a href="/dashboard" class="btn">Back to Dashboard</a>
+                <a href="/courses" class="btn-unenroll">Browse More Courses</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Teacher Panel - Skill Bridge</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <nav>
+        <h1>🌉 Skill Bridge</h1>
+        <div>
+            <a href="/teacher">Teacher Panel</a>
+            <a href="/logout">Logout</a>
+        </div>
+    </nav>
+
+    <div class="dashboard">
+        <h2>👩‍🏫 Teacher Panel</h2>
+        <p>Add and update courses from here!</p>
+
+        <div class="admin-grid">
+
+            <div class="admin-card">
+                <h3>➕ Add New Course</h3>
+                <form method="POST" action="/teacher/add_course">
+                    <div class="form-group">
+                        <label>Course Title</label>
+                        <input type="text" name="title"
+                               placeholder="e.g. JavaScript Basics" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Description</label>
+                        <input type="text" name="description"
+                               placeholder="e.g. Learn JS from scratch" required>
+                    </div>
+                    <button type="submit" class="btn">Add Course</button>
+                </form>
+            </div>
+
+            <div class="admin-card">
+                <h3>📚 My Courses</h3>
+                {% if courses %}
+                <table class="admin-table">
+                    <tr>
+                        <th>Course Name</th>
+                        <th>Action</th>
+                    </tr>
+                    {% for course in courses %}
+                    <tr>
+                        <td>{{ course[1] }}</td>
+                        <td style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+    <a href="/teacher/edit_course/{{ course[0] }}"
+       class="btn-edit">Edit</a>
+    <a href="/teacher/add_lesson/{{ course[0] }}"
+       class="btn-edit" style="color:#34d399; border-color:#34d399;">
+       + Lesson</a>
+    <a href="/teacher/add_quiz/{{ course[0] }}"
+       class="btn-edit" style="color:#f59e0b; border-color:#f59e0b;">
+       + Quiz</a>
+</td>
+                    </tr>
+                    {% endfor %}
+                </table>
+                {% else %}
+                <p>No courses yet! Add your first one!</p>
+                {% endif %}
+            </div>
+
+        </div>
+    </div>
+</body>
+</html>

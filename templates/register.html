@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Register - Skill Bridge</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <nav>
+        <h1>🌉 Skill Bridge</h1>
+        <div>
+            <a href="/login">Login</a>
+            <a href="/register">Register</a>
+        </div>
+    </nav>
+
+    <div class="form-container">
+        <h2>Create Your Account</h2>
+        <p>Join Skill Bridge today — it's free!</p>
+
+        <form method="POST" action="/register">
+            <div class="form-group">
+                <label>Your Name</label>
+                <input type="text" name="name" placeholder="e.g. Prachi Sharma" required>
+            </div>
+
+            <div class="form-group">
+                <label>Email Address</label>
+                <input type="email" name="email" placeholder="e.g. prachi@email.com" required>
+            </div>
+
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" name="password" placeholder="Create a password" required>
+            </div>
+
+            <button type="submit" class="btn">Create Account</button>
+        </form>
+
+        <p style="margin-top: 1rem;">
+            Already have an account? <a href="/login">Login here</a>
+        </p>
+    </div>
+</body>
+</html>

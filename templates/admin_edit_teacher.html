@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Edit Teacher - Skill Bridge</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <nav>
+        <h1>🌉 Skill Bridge Admin</h1>
+        <div>
+            <a href="/admin">Admin Panel</a>
+            <a href="/logout">Logout</a>
+        </div>
+    </nav>
+
+    <div class="form-container">
+        <h2>✏️ Edit Teacher</h2>
+        <p>Update the teacher details below!</p>
+
+        <form method="POST" action="/admin/edit_teacher/{{ teacher[0] }}">
+            <div class="form-group">
+                <label>Full Name</label>
+                <input type="text" name="name"
+                       value="{{ teacher[1] }}" required>
+            </div>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" name="email"
+                       value="{{ teacher[2] }}" required>
+            </div>
+            <div class="form-group">
+                <label>Subject</label>
+                <input type="text" name="subject"
+                       value="{{ teacher[3] }}" required>
+            </div>
+            <button type="submit" class="btn">Save Changes</button>
+            <a href="/admin" class="btn-unenroll"
+               style="margin-left:1rem;">Cancel</a>
+        </form>
+    </div>
+</body>
+</html>

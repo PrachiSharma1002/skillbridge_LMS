@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>{{ course[1] }} - Skill Bridge</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <nav>
+        <h1>🌉 Skill Bridge</h1>
+        <div>
+            <a href="/dashboard">Dashboard</a>
+            <a href="/logout">Logout</a>
+        </div>
+    </nav>
+
+    <div class="dashboard">
+        <h2>📚 {{ course[1] }}</h2>
+        <p>{{ course[2] }}</p>
+
+        <h3>Lessons</h3>
+
+        {% if lessons %}
+        <div class="lessons-list">
+            {% for lesson in lessons %}
+            <div class="lesson-card {% if lesson[0] in completed %}completed{% endif %}">
+                <div class="lesson-info">
+                    <h4>
+                        {% if lesson[0] in completed %}
+                            ✅
+                        {% else %}
+                            📖
+                        {% endif %}
+                        {{ lesson[2] }}
+                    </h4>
+                    <p>{{ lesson[3] }}</p>
+                </div>
+                <div class="lesson-action" style="display:flex; flex-direction:column; gap:0.5rem;">
+    {% if lesson[0] in completed %}
+        <span class="badge-done">Completed!</span>
+    {% else %}
+        <a href="/complete_lesson/{{ lesson[0] }}" 
+           class="btn">Mark Complete</a>
+    {% endif %}
+    <a href="/quiz/{{ lesson[0] }}" 
+       class="btn-edit">Take Quiz</a>
+</div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-box">
+            <p>No lessons added yet!</p>
+            <p>Ask your teacher to add lessons.</p>
+        </div>
+        {% endif %}
+
+        <div style="margin-top: 2rem;">
+            <a href="/dashboard" class="btn-unenroll">← Back to Dashboard</a>
+        </div>
+    </div>
+</body>
+</html>

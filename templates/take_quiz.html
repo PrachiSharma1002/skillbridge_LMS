@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Quiz - Skill Bridge</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <nav>
+        <h1>🌉 Skill Bridge</h1>
+        <div>
+            <a href="/dashboard">Dashboard</a>
+            <a href="/logout">Logout</a>
+        </div>
+    </nav>
+
+    <div class="dashboard">
+        <h2>❓ Quiz — {{ lesson[2] }}</h2>
+        <p>Answer all questions and click Submit!</p>
+
+        {% if questions %}
+        <form method="POST" action="/quiz/{{ lesson[0] }}">
+            <div class="lessons-list">
+                {% for q in questions %}
+                <div class="lesson-card" style="flex-direction:column; align-items:flex-start;">
+                    <h4 style="margin-bottom:1rem;">
+                        Q{{ loop.index }}. {{ q[2] }}
+                    </h4>
+                    <div class="quiz-options">
+                        <label class="quiz-option">
+                            <input type="radio" name="quiz_{{ q[0] }}" value="A" required>
+                            <span>A. {{ q[3] }}</span>
+                        </label>
+                        <label class="quiz-option">
+                            <input type="radio" name="quiz_{{ q[0] }}" value="B">
+                            <span>B. {{ q[4] }}</span>
+                        </label>
+                        <label class="quiz-option">
+                            <input type="radio" name="quiz_{{ q[0] }}" value="C">
+                            <span>C. {{ q[5] }}</span>
+                        </label>
+                        <label class="quiz-option">
+                            <input type="radio" name="quiz_{{ q[0] }}" value="D">
+                            <span>D. {{ q[6] }}</span>
+                        </label>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <button type="submit" class="btn" 
+                    style="margin-top:2rem;">Submit Quiz</button>
+        </form>
+        {% else %}
+        <div class="empty-box">
+            <p>No quiz questions added yet!</p>
+            <a href="/dashboard" class="btn">Back to Dashboard</a>
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>

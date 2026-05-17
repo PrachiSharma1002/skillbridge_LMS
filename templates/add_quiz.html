@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Add Quiz - Skill Bridge</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <nav>
+        <h1>🌉 Skill Bridge</h1>
+        <div>
+            <a href="/teacher">Teacher Panel</a>
+            <a href="/logout">Logout</a>
+        </div>
+    </nav>
+
+    <div class="form-container" style="max-width:600px;">
+        <h2>❓ Add Quiz Question</h2>
+        <p>Adding quiz to: <strong>{{ lesson[2] }}</strong></p>
+
+        <form method="POST" action="/teacher/add_quiz/{{ lesson[0] }}">
+            <div class="form-group">
+                <label>Question</label>
+                <textarea name="question" rows="3"
+                          placeholder="Write your question here..."
+                          style="width:100%; padding:0.75rem 1rem;
+                                 border:1px solid #ddd; border-radius:10px;
+                                 font-size:0.95rem; outline:none;
+                                 font-family:'Segoe UI', sans-serif;
+                                 resize:vertical;"
+                          required></textarea>
+            </div>
+            <div class="form-group">
+                <label>Option A</label>
+                <input type="text" name="option_a"
+                       placeholder="e.g. HTML" required>
+            </div>
+            <div class="form-group">
+                <label>Option B</label>
+                <input type="text" name="option_b"
+                       placeholder="e.g. CSS" required>
+            </div>
+            <div class="form-group">
+                <label>Option C</label>
+                <input type="text" name="option_c"
+                       placeholder="e.g. JavaScript" required>
+            </div>
+            <div class="form-group">
+                <label>Option D</label>
+                <input type="text" name="option_d"
+                       placeholder="e.g. Python" required>
+            </div>
+            <div class="form-group">
+                <label>Correct Answer</label>
+                <select name="correct_answer"
+                        style="width:100%; padding:0.75rem 1rem;
+                               border:1px solid #ddd; border-radius:10px;
+                               font-size:0.95rem; outline:none;
+                               font-family:'Segoe UI', sans-serif;
+                               background:white;">
+                    <option value="A">A</option>
+                    <option value="B">B</option>
+                    <option value="C">C</option>
+                    <option value="D">D</option>
+                </select>
+            </div>
+            <button type="submit" class="btn">Add Question</button>
+            <a href="/teacher" class="btn-unenroll"
+               style="margin-left:1rem;">Cancel</a>
+        </form>
+    </div>
+</body>
+</html>

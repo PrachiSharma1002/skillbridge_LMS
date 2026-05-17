@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Courses - Skill Bridge</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <nav>
+        <h1>🌉 Skill Bridge</h1>
+        <div>
+            <a href="/dashboard">Dashboard</a>
+            <a href="/logout">Logout</a>
+        </div>
+    </nav>
+
+    <div class="dashboard">
+        <h2>All Courses 📚</h2>
+        <p>Pick a course and start learning today!</p>
+
+        {% if courses %}
+        <div class="courses-grid">
+            {% for course in courses %}
+            <div class="course-card">
+                <h4>📖 {{ course[1] }}</h4>
+                <p>{{ course[2] }}</p>
+                <a href="/enroll/{{ course[0] }}" class="btn">Enroll Now</a>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-box">
+            <p>No courses available yet!</p>
+            <p>Ask your admin to add some courses.</p>
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>

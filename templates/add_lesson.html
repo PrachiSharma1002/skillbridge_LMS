@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Add Lesson - Skill Bridge</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <nav>
+        <h1>🌉 Skill Bridge</h1>
+        <div>
+            <a href="/teacher">Teacher Panel</a>
+            <a href="/logout">Logout</a>
+        </div>
+    </nav>
+
+    <div class="form-container" style="max-width: 600px;">
+        <h2>➕ Add New Lesson</h2>
+        <p>Adding lesson to: <strong>{{ course[1] }}</strong></p>
+
+        <form method="POST" action="/teacher/add_lesson/{{ course[0] }}">
+            <div class="form-group">
+                <label>Lesson Title</label>
+                <input type="text" name="title"
+                       placeholder="e.g. Introduction to HTML" required>
+            </div>
+            <div class="form-group">
+                <label>Lesson Content</label>
+                <textarea name="content" rows="6"
+                          placeholder="Write the lesson content here..."
+                          style="width:100%; padding:0.75rem 1rem;
+                                 border:1px solid #ddd; border-radius:10px;
+                                 font-size:0.95rem; outline:none;
+                                 font-family:'Segoe UI', sans-serif;
+                                 resize:vertical;"
+                          required></textarea>
+            </div>
+            <button type="submit" class="btn">Add Lesson</button>
+            <a href="/teacher" class="btn-unenroll"
+               style="margin-left:1rem;">Cancel</a>
+        </form>
+    </div>
+</body>
+</html>
