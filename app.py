@@ -1,8 +1,20 @@
 from flask import Flask, render_template, request, redirect, session
 import pymysql
+import os
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 app.secret_key = 'skillbridge123'
+
+UPLOAD_FOLDER = 'static/uploads'
+ALLOWED_EXTENSIONS = {'pdf', 'doc', 'docx'}
+
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
+
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 def get_db():
     return pymysql.connect(
@@ -17,7 +29,7 @@ def get_db():
 def home():
     return render_template('home.html')
 
-# ─── REGISTER (students only) ───────────────────────
+# ─── REGISTER ───────────────────────────────────────
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
@@ -100,7 +112,8 @@ def dashboard():
     """, (session['user_id'],))
     enrolled = cursor.fetchall()
     db.close()
-    return render_template('dashboard.html', name=session['user_name'], courses=enrolled)
+    return render_template('dashboard.html', name=session['user_name'],
+                           courses=enrolled)
 
 # ─── COURSES ────────────────────────────────────────
 @app.route('/courses')
@@ -144,7 +157,7 @@ def unenroll(course_id):
     db.close()
     return redirect('/dashboard')
 
-# ─── COURSE DETAIL & LESSONS ────────────────────────
+# ─── COURSE DETAIL ──────────────────────────────────
 @app.route('/course/<int:course_id>')
 def course_detail(course_id):
     if 'user_id' not in session:
@@ -158,9 +171,14 @@ def course_detail(course_id):
     cursor.execute("SELECT lesson_id FROM lesson_progress WHERE user_id=%s",
                    (session['user_id'],))
     completed = [row[0] for row in cursor.fetchall()]
+    cursor.execute("""SELECT * FROM materials WHERE lesson_id IN 
+                     (SELECT id FROM lessons WHERE course_id=%s)""",
+                   (course_id,))
+    materials = cursor.fetchall()
     db.close()
     return render_template('course_detail.html', course=course,
-                           lessons=lessons, completed=completed)
+                           lessons=lessons, completed=completed,
+                           materials=materials)
 
 # ─── COMPLETE LESSON ────────────────────────────────
 @app.route('/complete_lesson/<int:lesson_id>')
@@ -173,19 +191,23 @@ def complete_lesson(lesson_id):
                    (session['user_id'], lesson_id))
     already = cursor.fetchone()
     if not already:
-        cursor.execute("INSERT INTO lesson_progress (user_id, lesson_id, completed) VALUES (%s, %s, 1)",
+        cursor.execute("""INSERT INTO lesson_progress 
+                         (user_id, lesson_id, completed) VALUES (%s, %s, 1)""",
                        (session['user_id'], lesson_id))
         cursor.execute("SELECT course_id FROM lessons WHERE id=%s", (lesson_id,))
         course = cursor.fetchone()
-        cursor.execute("SELECT COUNT(*) FROM lessons WHERE course_id=%s", (course[0],))
+        cursor.execute("SELECT COUNT(*) FROM lessons WHERE course_id=%s",
+                       (course[0],))
         total = cursor.fetchone()[0]
         cursor.execute("""SELECT COUNT(*) FROM lesson_progress lp
                          JOIN lessons l ON lp.lesson_id = l.id
-                         WHERE lp.user_id=%s AND l.course_id=%s AND lp.completed=1""",
+                         WHERE lp.user_id=%s AND l.course_id=%s 
+                         AND lp.completed=1""",
                        (session['user_id'], course[0]))
         done = cursor.fetchone()[0]
         progress = int((done / total) * 100) if total > 0 else 0
-        cursor.execute("UPDATE enrollments SET progress=%s WHERE user_id=%s AND course_id=%s",
+        cursor.execute("""UPDATE enrollments SET progress=%s 
+                         WHERE user_id=%s AND course_id=%s""",
                        (progress, session['user_id'], course[0]))
         db.commit()
     db.close()
@@ -204,7 +226,8 @@ def take_quiz(lesson_id):
         for key, value in request.form.items():
             if key.startswith('quiz_'):
                 quiz_id = int(key.split('_')[1])
-                cursor.execute("SELECT correct_answer FROM quizzes WHERE id=%s", (quiz_id,))
+                cursor.execute("SELECT correct_answer FROM quizzes WHERE id=%s",
+                               (quiz_id,))
                 correct = cursor.fetchone()[0]
                 is_correct = 1 if value == correct else 0
                 if is_correct:
@@ -247,8 +270,8 @@ def admin():
     progress_data = cursor.fetchall()
     db.close()
     return render_template('admin.html', courses=all_courses,
-                       students=all_students, all_teachers=all_teachers,
-                       progress_data=progress_data)
+                           students=all_students, all_teachers=all_teachers,
+                           progress_data=progress_data)
 
 @app.route('/admin/add_course', methods=['POST'])
 def admin_add_course():
@@ -264,6 +287,25 @@ def admin_add_course():
     db.close()
     return redirect('/admin')
 
+@app.route('/admin/edit_course/<int:course_id>', methods=['GET', 'POST'])
+def admin_edit_course(course_id):
+    if 'user_id' not in session or session['role'] != 'admin':
+        return redirect('/')
+    db = get_db()
+    cursor = db.cursor()
+    if request.method == 'POST':
+        title = request.form['title']
+        description = request.form['description']
+        cursor.execute("UPDATE courses SET title=%s, description=%s WHERE id=%s",
+                       (title, description, course_id))
+        db.commit()
+        db.close()
+        return redirect('/admin')
+    cursor.execute("SELECT * FROM courses WHERE id=%s", (course_id,))
+    course = cursor.fetchone()
+    db.close()
+    return render_template('admin_edit_course.html', course=course)
+
 @app.route('/admin/delete_course/<int:course_id>')
 def delete_course(course_id):
     if 'user_id' not in session or session['role'] != 'admin':
@@ -271,6 +313,66 @@ def delete_course(course_id):
     db = get_db()
     cursor = db.cursor()
     cursor.execute("DELETE FROM courses WHERE id=%s", (course_id,))
+    db.commit()
+    db.close()
+    return redirect('/admin')
+
+@app.route('/admin/add_teacher', methods=['POST'])
+def add_teacher():
+    if 'user_id' not in session or session['role'] != 'admin':
+        return redirect('/')
+    name = request.form['name']
+    email = request.form['email']
+    password = request.form['password']
+    subject = request.form['subject']
+    db = get_db()
+    cursor = db.cursor()
+    cursor.execute("""INSERT INTO teachers (name, email, password, subject) 
+                     VALUES (%s, %s, %s, %s)""",
+                   (name, email, password, subject))
+    db.commit()
+    db.close()
+    return redirect('/admin')
+
+@app.route('/admin/edit_teacher/<int:teacher_id>', methods=['GET', 'POST'])
+def edit_teacher(teacher_id):
+    if 'user_id' not in session or session['role'] != 'admin':
+        return redirect('/')
+    db = get_db()
+    cursor = db.cursor()
+    if request.method == 'POST':
+        name = request.form['name']
+        email = request.form['email']
+        subject = request.form['subject']
+        cursor.execute("""UPDATE teachers SET name=%s, email=%s, 
+                         subject=%s WHERE id=%s""",
+                       (name, email, subject, teacher_id))
+        db.commit()
+        db.close()
+        return redirect('/admin')
+    cursor.execute("SELECT * FROM teachers WHERE id=%s", (teacher_id,))
+    teacher = cursor.fetchone()
+    db.close()
+    return render_template('admin_edit_teacher.html', teacher=teacher)
+
+@app.route('/admin/delete_teacher/<int:teacher_id>')
+def delete_teacher(teacher_id):
+    if 'user_id' not in session or session['role'] != 'admin':
+        return redirect('/')
+    db = get_db()
+    cursor = db.cursor()
+    cursor.execute("DELETE FROM teachers WHERE id=%s", (teacher_id,))
+    db.commit()
+    db.close()
+    return redirect('/admin')
+
+@app.route('/admin/delete_student/<int:student_id>')
+def delete_student(student_id):
+    if 'user_id' not in session or session['role'] != 'admin':
+        return redirect('/')
+    db = get_db()
+    cursor = db.cursor()
+    cursor.execute("DELETE FROM students WHERE id=%s", (student_id,))
     db.commit()
     db.close()
     return redirect('/admin')
@@ -306,7 +408,8 @@ def teacher_add_course():
     description = request.form['description']
     db = get_db()
     cursor = db.cursor()
-    cursor.execute("INSERT INTO courses (title, description, created_by) VALUES (%s, %s, %s)",
+    cursor.execute("""INSERT INTO courses (title, description, created_by) 
+                     VALUES (%s, %s, %s)""",
                    (title, description, session['user_id']))
     db.commit()
     db.close()
@@ -344,7 +447,9 @@ def add_lesson(course_id):
     if request.method == 'POST':
         title = request.form['title']
         content = request.form['content']
-        cursor.execute("INSERT INTO lessons (course_id, title, content, created_by) VALUES (%s, %s, %s, %s)",
+        cursor.execute("""INSERT INTO lessons 
+                         (course_id, title, content, created_by) 
+                         VALUES (%s, %s, %s, %s)""",
                        (course_id, title, content, session['user_id']))
         db.commit()
         db.close()
@@ -368,7 +473,8 @@ def add_quiz(course_id):
         option_d = request.form['option_d']
         correct = request.form['correct_answer']
         cursor.execute("""INSERT INTO quizzes
-                         (lesson_id, question, option_a, option_b, option_c, option_d, correct_answer)
+                         (lesson_id, question, option_a, option_b, 
+                          option_c, option_d, correct_answer)
                          VALUES (%s, %s, %s, %s, %s, %s, %s)""",
                        (course_id, question, option_a, option_b,
                         option_c, option_d, correct))
@@ -388,10 +494,18 @@ def add_material(lesson_id):
     cursor = db.cursor()
     if request.method == 'POST':
         title = request.form['title']
-        content = request.form['content']
-        cursor.execute("INSERT INTO materials (lesson_id, title, content, created_by) VALUES (%s, %s, %s, %s)",
-                       (lesson_id, title, content, session['user_id']))
-        db.commit()
+        file = request.files['file']
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            file_ext = filename.rsplit('.', 1)[1].lower()
+            unique_filename = f"{lesson_id}_{filename}"
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], unique_filename))
+            cursor.execute("""INSERT INTO materials
+                             (lesson_id, title, file_path, file_type, created_by)
+                             VALUES (%s, %s, %s, %s, %s)""",
+                           (lesson_id, title, unique_filename,
+                            file_ext, session['user_id']))
+            db.commit()
         db.close()
         return redirect('/teacher')
     cursor.execute("SELECT * FROM lessons WHERE id=%s", (lesson_id,))
@@ -399,87 +513,23 @@ def add_material(lesson_id):
     db.close()
     return render_template('add_material.html', lesson=lesson)
 
-# ─── ADMIN EDIT COURSE ──────────────────────────────
-@app.route('/admin/edit_course/<int:course_id>', methods=['GET', 'POST'])
-def admin_edit_course(course_id):
-    if 'user_id' not in session or session['role'] != 'admin':
+
+@app.route('/teacher/course_lessons/<int:course_id>')
+def course_lessons(course_id):
+    if 'user_id' not in session or session['role'] != 'teacher':
         return redirect('/')
     db = get_db()
     cursor = db.cursor()
-    if request.method == 'POST':
-        title = request.form['title']
-        description = request.form['description']
-        cursor.execute("UPDATE courses SET title=%s, description=%s WHERE id=%s",
-                       (title, description, course_id))
-        db.commit()
-        db.close()
-        return redirect('/admin')
-    cursor.execute("SELECT * FROM courses WHERE id=%s", (course_id,))
+    cursor.execute("SELECT * FROM courses WHERE id=%s AND created_by=%s",
+                   (course_id, session['user_id']))
     course = cursor.fetchone()
-    db.close()
-    return render_template('admin_edit_course.html', course=course)
-
-# ─── ADMIN ADD TEACHER ──────────────────────────────
-@app.route('/admin/add_teacher', methods=['POST'])
-def add_teacher():
-    if 'user_id' not in session or session['role'] != 'admin':
-        return redirect('/')
-    name = request.form['name']
-    email = request.form['email']
-    password = request.form['password']
-    subject = request.form['subject']
-    db = get_db()
-    cursor = db.cursor()
-    cursor.execute("INSERT INTO teachers (name, email, password, subject) VALUES (%s, %s, %s, %s)",
-                   (name, email, password, subject))
-    db.commit()
-    db.close()
-    return redirect('/admin')
-
-# ─── ADMIN EDIT TEACHER ─────────────────────────────
-@app.route('/admin/edit_teacher/<int:teacher_id>', methods=['GET', 'POST'])
-def edit_teacher(teacher_id):
-    if 'user_id' not in session or session['role'] != 'admin':
-        return redirect('/')
-    db = get_db()
-    cursor = db.cursor()
-    if request.method == 'POST':
-        name = request.form['name']
-        email = request.form['email']
-        subject = request.form['subject']
-        cursor.execute("UPDATE teachers SET name=%s, email=%s, subject=%s WHERE id=%s",
-                       (name, email, subject, teacher_id))
-        db.commit()
+    if not course:
         db.close()
-        return redirect('/admin')
-    cursor.execute("SELECT * FROM teachers WHERE id=%s", (teacher_id,))
-    teacher = cursor.fetchone()
+        return redirect('/teacher')
+    cursor.execute("SELECT * FROM lessons WHERE course_id=%s", (course_id,))
+    lessons = cursor.fetchall()
     db.close()
-    return render_template('admin_edit_teacher.html', teacher=teacher)
-
-# ─── ADMIN DELETE TEACHER ───────────────────────────
-@app.route('/admin/delete_teacher/<int:teacher_id>')
-def delete_teacher(teacher_id):
-    if 'user_id' not in session or session['role'] != 'admin':
-        return redirect('/')
-    db = get_db()
-    cursor = db.cursor()
-    cursor.execute("DELETE FROM teachers WHERE id=%s", (teacher_id,))
-    db.commit()
-    db.close()
-    return redirect('/admin')
-
-# ─── ADMIN DELETE STUDENT ───────────────────────────
-@app.route('/admin/delete_student/<int:student_id>')
-def delete_student(student_id):
-    if 'user_id' not in session or session['role'] != 'admin':
-        return redirect('/')
-    db = get_db()
-    cursor = db.cursor()
-    cursor.execute("DELETE FROM students WHERE id=%s", (student_id,))
-    db.commit()
-    db.close()
-    return redirect('/admin')
+    return render_template('course_lessons.html', course=course, lessons=lessons)
 
 if __name__ == '__main__':
     app.run(debug=True)

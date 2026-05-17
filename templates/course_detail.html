@@ -35,7 +35,7 @@
                     </h4>
                     <p>{{ lesson[3] }}</p>
                 </div>
-                <div class="lesson-action" style="display:flex; flex-direction:column; gap:0.5rem;">
+                <div class="lesson-action" style="display:flex; flex-direction:column; gap:0.5rem; align-items:flex-start;">
     {% if lesson[0] in completed %}
         <span class="badge-done">Completed!</span>
     {% else %}
@@ -44,6 +44,19 @@
     {% endif %}
     <a href="/quiz/{{ lesson[0] }}" 
        class="btn-edit">Take Quiz</a>
+    {% for material in materials %}
+        {% if material[1] == lesson[0] %}
+        <a href="/static/uploads/{{ material[3] }}" 
+           target="_blank"
+           class="btn-download">
+           {% if material[4] == 'pdf' %}
+               📄 {{ material[2] }}
+           {% else %}
+               📝 {{ material[2] }}
+           {% endif %}
+        </a>
+        {% endif %}
+    {% endfor %}
 </div>
             </div>
             {% endfor %}

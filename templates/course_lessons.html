@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Course Lessons - Skill Bridge</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <nav>
+        <h1>🌉 Skill Bridge</h1>
+        <div>
+            <a href="/teacher">Teacher Panel</a>
+            <a href="/logout">Logout</a>
+        </div>
+    </nav>
+
+    <div class="dashboard">
+        <h2>📚 {{ course[1] }}</h2>
+        <p>Select a lesson to upload material for!</p>
+
+        {% if lessons %}
+        <div class="lessons-list" style="margin-top:2rem;">
+            {% for lesson in lessons %}
+            <div class="lesson-card">
+                <div class="lesson-info">
+                    <h4>📖 {{ lesson[2] }}</h4>
+                    <p>{{ lesson[3] }}</p>
+                </div>
+                <div class="lesson-action">
+                    <a href="/teacher/add_material/{{ lesson[0] }}"
+                       class="btn" style="font-size:0.85rem; padding:0.5rem 1rem;">
+                       📄 Upload Material
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-box" style="margin-top:2rem;">
+            <p>No lessons yet!</p>
+            <a href="/teacher/add_lesson/{{ course[0] }}" class="btn">
+                Add First Lesson
+            </a>
+        </div>
+        {% endif %}
+
+        <div style="margin-top:2rem;">
+            <a href="/teacher" class="btn-unenroll">← Back to Teacher Panel</a>
+        </div>
+    </div>
+</body>
+</html>
