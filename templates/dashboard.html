@@ -25,10 +25,10 @@
             <div class="course-card">
                 <h4>📚 {{ course[0] }}</h4>
                 <p>Progress</p>
-                <div class="progress-bar">
-    <div class="progress-fill" style="width: {{ course[1] }}%">
-        {{ course[1] }}%
-    </div>
+               <div class="progress-bar">
+    <div class="progress-fill" style="width: {{ course[1] }}%;"></div>
+</div>
+<span class="progress-label">{{ course[1] }}% complete</span>
 </div>
 <div style="display:flex; gap:0.75rem; margin-top:0.75rem;">
     <a href="/course/{{ course[2] }}" class="btn"

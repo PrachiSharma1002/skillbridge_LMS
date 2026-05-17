@@ -15,30 +15,47 @@
     </nav>
 
     <div class="form-container" style="max-width:600px;">
-        <h2>📄 Add Study Material</h2>
+        <h2>📄 Upload Study Material</h2>
         <p>Adding material to: <strong>{{ lesson[2] }}</strong></p>
 
-        <form method="POST" action="/teacher/add_material/{{ lesson[0] }}">
+        <form method="POST"
+              action="/teacher/add_material/{{ lesson[0] }}"
+              enctype="multipart/form-data">
+
             <div class="form-group">
                 <label>Material Title</label>
                 <input type="text" name="title"
                        placeholder="e.g. HTML Cheatsheet" required>
             </div>
+
             <div class="form-group">
-                <label>Material Content</label>
-                <textarea name="content" rows="8"
-                          placeholder="Write the study material here..."
-                          style="width:100%; padding:0.75rem 1rem;
-                                 border:1px solid #ddd; border-radius:10px;
-                                 font-size:0.95rem; outline:none;
-                                 font-family:'Segoe UI', sans-serif;
-                                 resize:vertical;"
-                          required></textarea>
+                <label>Upload File (PDF or Word only)</label>
+                <div class="file-upload-box">
+                    <input type="file" name="file" id="fileInput"
+                           accept=".pdf,.doc,.docx" required
+                           onchange="showFileName(this)">
+                    <label for="fileInput" class="file-upload-label">
+                        <span id="file-name">📎 Click to choose a file</span>
+                    </label>
+                </div>
+                <p style="font-size:0.8rem; color:#888; margin-top:0.5rem;">
+                    ✅ Allowed: PDF, DOC, DOCX &nbsp;|&nbsp; Max size: 16MB
+                </p>
             </div>
-            <button type="submit" class="btn">Add Material</button>
+
+            <button type="submit" class="btn">⬆️ Upload Material</button>
             <a href="/teacher" class="btn-unenroll"
                style="margin-left:1rem;">Cancel</a>
         </form>
     </div>
+
+    <script>
+        function showFileName(input) {
+            if (input.files && input.files[0]) {
+                document.getElementById('file-name').textContent = 
+                    '✅ ' + input.files[0].name;
+            }
+        }
+    </script>
 </body>
 </html>
