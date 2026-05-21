@@ -18,10 +18,11 @@ def allowed_file(filename):
 
 def get_db():
     return pymysql.connect(
-        host='localhost',
-        user='root',
-        password='#PrachiSQL123',
-        database='skillbridge'
+        host=os.environ.get('MYSQLHOST', 'localhost'),
+        user=os.environ.get('MYSQLUSER', 'root'),
+        password=os.environ.get('MYSQLPASSWORD', ''),
+        database=os.environ.get('MYSQLDATABASE', 'skillbridge'),
+        port=int(os.environ.get('MYSQLPORT', 3306))
     )
 
 # ─── HOME ───────────────────────────────────────────
@@ -534,3 +535,4 @@ def course_lessons(course_id):
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=False)
+
